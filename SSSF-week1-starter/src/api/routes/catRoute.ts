@@ -9,7 +9,11 @@ import {
 import multer, {FileFilterCallback} from 'multer';
 import {body, param} from 'express-validator';
 import passport from '../../passport';
-import {getCoordinates, makeThumbnail} from '../../middlewares';
+import {
+  getCoordinates,
+  makeThumbnail,
+  validationErrorHandler,
+} from '../../middlewares';
 
 const fileFilter = (
   request: Request,
@@ -36,20 +40,26 @@ router
     body('cat_name').notEmpty().escape(),
     body('birthdate').isDate(),
     body('weight').isNumeric(),
+    validationErrorHandler,
     catPost
   );
 
 router
   .route('/:id')
-  .get(param('id').isNumeric(), catGet)
+  .get(param('id').isInt(), validationErrorHandler, catGet)
   .put(
     passport.authenticate('jwt', {session: false}),
-    param('id').isNumeric(),
+    param('id').isInt(),
+    body('cat_name').notEmpty().optional().escape(),
+    body('birthdate').optional().isDate(),
+    body('weight').optional().isNumeric(),
+    validationErrorHandler,
     catPut
   )
   .delete(
     passport.authenticate('jwt', {session: false}),
-    param('id').isNumeric(),
+    param('id').isInt(),
+    validationErrorHandler,
     catDelete
   );
 
